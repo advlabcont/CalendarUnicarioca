@@ -1,0 +1,244 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+:root {
+  /* UniCarioca Cores Primárias */
+  --navy: #0A1733;       /* Marinho estrutural */
+  --red: #D0201A;        /* Vermelho UniCarioca */
+  
+  /* Cores de Apoio */
+  --navy-2: #13244A;     /* Hover marinho e superfícies escuras */
+  --red-dark: #A3140F;   /* Hover do botão vermelho e texto escuro */
+  --red-light: #FDECEA;  /* Fundo de callouts de ajuste e tags */
+  --text: #34415E;       /* Texto corrido */
+  --muted: #66728C;      /* Legendas e metadados */
+  --soft: #F3F5FA;       /* Superfície cartões e blocos de dados */
+  --line: #DFE4EE;       /* Bordas e linhas divisórias */
+  --paper: #FFFFFF;      /* Fundo branco */
+  --on-navy: #CBD4E8;    /* Texto sobre marinho */
+  
+  /* Cores Semânticas */
+  --sev-high: #D0201A;
+  --sev-mid: #F4B740;
+  --sev-low: #DFE4EE;
+  
+  /* Gradiente do Círculo da Capa */
+  --circle: radial-gradient(circle at 35% 35%, #EC3B2E 0%, #C81A14 45%, #8E110D 100%);
+  
+  /* Tipografia */
+  --font-sans: 'Poppins', system-ui, -apple-system, sans-serif;
+  
+  /* Raios de Canto */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+  --r-pill: 99px;
+}
+
+@theme {
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-navy: #0A1733;
+  --color-navy-2: #13244A;
+  --color-red: #D0201A;
+  --color-red-dark: #A3140F;
+  --color-red-light: #FDECEA;
+  --color-text: #34415E;
+  --color-muted: #66728C;
+  --color-soft: #F3F5FA;
+  --color-line: #DFE4EE;
+  --color-paper: #FFFFFF;
+  --color-on-navy: #CBD4E8;
+  
+  --color-sem-high: #D0201A;
+  --color-sem-mid: #F4B740;
+  --color-sem-low: #DFE4EE;
+}
+
+body {
+  font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+  color: #34415E;
+  background-color: #F3F5FA;
+}
+
+/* UniCarioca Component Styles */
+.unicarioca-card {
+  background-color: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid #DFE4EE;
+  transition: all 0.2s ease;
+}
+
+.unicarioca-card:hover {
+  border-color: #CBD4E8;
+  box-shadow: 0 8px 24px -4px rgba(10, 23, 51, 0.06);
+}
+
+.unicarioca-callout {
+  background-color: #FDECEA;
+  border-left: 4px solid #D0201A;
+  border-radius: 0 12px 12px 0;
+  padding: 1rem 1.25rem;
+}
+
+/* Button variants per Design System */
+.btn-pill-red {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #D0201A;
+  color: #FFFFFF;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 0.625rem 1.5rem;
+  transition: all 0.15s ease;
+  font-size: 0.875rem;
+}
+.btn-pill-red:hover {
+  background-color: #A3140F;
+}
+
+.btn-pill-navy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #0A1733;
+  color: #FFFFFF;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 0.625rem 1.5rem;
+  transition: all 0.15s ease;
+  font-size: 0.875rem;
+}
+.btn-pill-navy:hover {
+  background-color: #13244A;
+}
+
+.btn-pill-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #FFFFFF;
+  border: 1px solid #DFE4EE;
+  color: #0A1733;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 0.625rem 1.5rem;
+  transition: all 0.15s ease;
+  font-size: 0.875rem;
+}
+.btn-pill-outline:hover {
+  background-color: #F3F5FA;
+  border-color: #CBD4E8;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F3F5FA;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD4E8;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #66728C;
+}
+
+/* Netflix & Hotmart Animation Keyframes */
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-float {
+  animation: float-slow 4s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* Netflix-inspired Interactive Card Hover */
+.netflix-card {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.25s ease;
+  will-change: transform, box-shadow;
+}
+
+.netflix-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 35px -8px rgba(10, 23, 51, 0.12), 0 0 0 1.5px rgba(208, 32, 26, 0.35);
+}
+
+/* Hotmart-inspired Glowing Button & Card Accents */
+.btn-glow-red {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-glow-red:hover {
+  box-shadow: 0 8px 24px -2px rgba(208, 32, 26, 0.45);
+  transform: translateY(-1px);
+}
+
+.btn-glow-red::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.25) 50%,
+    transparent 80%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+}
+
+.btn-glow-red:hover::after {
+  transform: translateX(100%);
+}
+
+/* Progress bar transition */
+.progress-bar-animated {
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+

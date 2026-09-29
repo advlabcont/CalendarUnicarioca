@@ -1,0 +1,100 @@
+{
+  "entities": {
+    "ConfigTeacher": {
+      "title": "ConfigTeacher",
+      "description": "Teacher configuration document for storing the password",
+      "type": "object",
+      "properties": {
+        "password": {
+          "type": "string",
+          "description": "The teacher access password"
+        }
+      },
+      "required": ["password"]
+    },
+    "ConfigEvent": {
+      "title": "ConfigEvent",
+      "description": "General event and presentation settings configurable by teacher",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "date": { "type": "string" },
+        "location": { "type": "string" },
+        "course": { "type": "string" },
+        "duration": { "type": "string" },
+        "instructions": { "type": "string" }
+      }
+    },
+    "Turma": {
+      "title": "Turma",
+      "description": "Academic class with schedule and presentation date in UniCarioca",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "presentationDate": { "type": "string" },
+        "timeRange": { "type": "string" },
+        "intervalMinutes": { "type": "number" },
+        "location": { "type": "string" }
+      },
+      "required": ["id", "code", "name", "presentationDate"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "A scheduled presentation slot booked by students with up to 10 members, matricula, and presentation file/link",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "slot": { "type": "string" },
+        "turmaId": { "type": "string" },
+        "turmaCode": { "type": "string" },
+        "turmaName": { "type": "string" },
+        "presentationDate": { "type": "string" },
+        "projectTitle": { "type": "string" },
+        "members": { "type": "string" },
+        "membersList": { "type": "array" },
+        "presentationLink": { "type": "string" },
+        "presentationFileName": { "type": "string" },
+        "presentationFileData": { "type": "string" },
+        "materials": { "type": "array" },
+        "customMaterials": { "type": "string" },
+        "grade": { "type": "string" },
+        "status": { "type": "string" },
+        "feedback": { "type": "string" },
+        "rubricScores": { "type": "object" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "slot", "projectTitle", "members", "createdAt"]
+    },
+    "Slot": {
+      "title": "Slot",
+      "description": "An open timeslot for presentations belonging to a specific turma",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "time": { "type": "string" },
+        "turmaId": { "type": "string" }
+      },
+      "required": ["id", "time"]
+    }
+  },
+  "firestore": {
+    "config/{configId}": {
+      "schema": "ConfigTeacher",
+      "description": "Configuration documents (teacher, eventSettings)"
+    },
+    "bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Collection of presentation timeslot bookings"
+    },
+    "slots/{slotId}": {
+      "schema": "Slot",
+      "description": "Collection of available timeslots"
+    },
+    "turmas/{turmaId}": {
+      "schema": "Turma",
+      "description": "Collection of active classes/turmas"
+    }
+  }
+}

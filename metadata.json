@@ -1,0 +1,8 @@
+{
+  "name": " Agendamento de Apresentações 2",
+  "description": "Aplicativo para agendamento de apresentações de trabalhos em 27/06, com horários de 20 em 20 minutos e painel de controle restrito para professores.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

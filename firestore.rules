@@ -1,0 +1,142 @@
+rules_version = '2';
+// EduSchedule v2.0 UniCarioca Firestore Security Rules
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common helper functions
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_:-]+$');
+    }
+
+    // Config Collection Schema Validation
+    function isValidConfig(docId, data) {
+      return docId == 'teacher' 
+        ? (data.keys().hasAll(['password']) && data.password is string && data.password.size() >= 1 && data.password.size() <= 100)
+        : (
+            (!('title' in data) || (data.title is string && data.title.size() <= 200))
+            && (!('date' in data) || (data.date is string && data.date.size() <= 200))
+            && (!('location' in data) || (data.location is string && data.location.size() <= 200))
+            && (!('course' in data) || (data.course is string && data.course.size() <= 200))
+            && (!('duration' in data) || (data.duration is string && data.duration.size() <= 100))
+            && (!('instructions' in data) || (data.instructions is string && data.instructions.size() <= 2000))
+          );
+    }
+
+    // Bookings Collection Schema Validation
+    function isValidBooking(data) {
+      return data.keys().hasAll(['id', 'slot', 'projectTitle', 'members', 'createdAt'])
+        && data.id is string 
+        && data.id.size() <= 80
+        && data.slot is string 
+        && data.slot.size() <= 60
+        && data.projectTitle is string 
+        && data.projectTitle.size() <= 250
+        && data.members is string 
+        && data.members.size() <= 1200
+        && data.createdAt is number
+        && (!('materials' in data) || (data.materials is list && data.materials.size() <= 20))
+        && (!('membersList' in data) || (data.membersList is list && data.membersList.size() <= 10))
+        && (!('presentationLink' in data) || (data.presentationLink is string && data.presentationLink.size() <= 1500))
+        && (!('presentationFileName' in data) || (data.presentationFileName is string && data.presentationFileName.size() <= 300))
+        && (!('presentationFileData' in data) || (data.presentationFileData is string && data.presentationFileData.size() <= 3000000))
+        && (!('turmaId' in data) || (data.turmaId is string && data.turmaId.size() <= 60))
+        && (!('turmaCode' in data) || (data.turmaCode is string && data.turmaCode.size() <= 60))
+        && (!('turmaName' in data) || (data.turmaName is string && data.turmaName.size() <= 300))
+        && (!('presentationDate' in data) || (data.presentationDate is string && data.presentationDate.size() <= 60))
+        && (!('customMaterials' in data) || (data.customMaterials is string && data.customMaterials.size() <= 500))
+        && (!('grade' in data) || (data.grade is string && data.grade.size() <= 100))
+        && (!('status' in data) || (data.status is string && data.status.size() <= 50))
+        && (!('feedback' in data) || (data.feedback is string && data.feedback.size() <= 2000))
+        && (!('rubricScores' in data) || (data.rubricScores is map));
+    }
+
+    function isValidBookingUpdate(data) {
+      return (!('id' in data) || (data.id is string && data.id.size() <= 80))
+        && (!('slot' in data) || (data.slot is string && data.slot.size() <= 60))
+        && (!('projectTitle' in data) || (data.projectTitle is string && data.projectTitle.size() <= 250))
+        && (!('members' in data) || (data.members is string && data.members.size() <= 1200))
+        && (!('createdAt' in data) || (data.createdAt is number))
+        && (!('materials' in data) || (data.materials is list && data.materials.size() <= 20))
+        && (!('membersList' in data) || (data.membersList is list && data.membersList.size() <= 10))
+        && (!('presentationLink' in data) || (data.presentationLink is string && data.presentationLink.size() <= 1500))
+        && (!('presentationFileName' in data) || (data.presentationFileName is string && data.presentationFileName.size() <= 300))
+        && (!('presentationFileData' in data) || (data.presentationFileData is string && data.presentationFileData.size() <= 3000000))
+        && (!('turmaId' in data) || (data.turmaId is string && data.turmaId.size() <= 60))
+        && (!('turmaCode' in data) || (data.turmaCode is string && data.turmaCode.size() <= 60))
+        && (!('turmaName' in data) || (data.turmaName is string && data.turmaName.size() <= 300))
+        && (!('presentationDate' in data) || (data.presentationDate is string && data.presentationDate.size() <= 60))
+        && (!('customMaterials' in data) || (data.customMaterials is string && data.customMaterials.size() <= 500))
+        && (!('grade' in data) || (data.grade is string && data.grade.size() <= 100))
+        && (!('status' in data) || (data.status is string && data.status.size() <= 50))
+        && (!('feedback' in data) || (data.feedback is string && data.feedback.size() <= 2000))
+        && (!('rubricScores' in data) || (data.rubricScores is map));
+    }
+
+    // Slots Collection Schema Validation
+    function isValidSlot(data) {
+      return data.keys().hasAll(['id', 'time'])
+        && data.id is string
+        && data.id.size() <= 80
+        && data.time is string
+        && data.time.size() <= 60
+        && (!('turmaId' in data) || (data.turmaId is string && data.turmaId.size() <= 60));
+    }
+
+    // Turmas Collection Schema Validation
+    function isValidTurma(data) {
+      return data.keys().hasAll(['id', 'code', 'name', 'presentationDate'])
+        && data.id is string && data.id.size() <= 60
+        && data.code is string && data.code.size() <= 60
+        && data.name is string && data.name.size() <= 300
+        && data.presentationDate is string && data.presentationDate.size() <= 60;
+    }
+
+    // Config Collection Rules
+    match /config/{docId} {
+      allow get, list: if isValidId(docId);
+      allow create, update: if isValidId(docId) && isValidConfig(docId, incoming());
+      allow delete: if isValidId(docId);
+    }
+
+    // Turmas Collection Rules
+    match /turmas/{turmaId} {
+      allow get, list: if true;
+      allow create, update: if isValidId(turmaId) && isValidTurma(incoming());
+      allow delete: if isValidId(turmaId);
+    }
+
+    // Bookings Collection Rules
+    match /bookings/{bookingId} {
+      allow get, list: if true;
+      allow create: if isValidId(bookingId) 
+        && isValidBooking(incoming()) 
+        && incoming().id == bookingId;
+      allow update: if isValidId(bookingId) 
+        && isValidBookingUpdate(incoming()) 
+        && (!('id' in incoming()) || incoming().id == bookingId);
+      allow delete: if isValidId(bookingId);
+    }
+
+    // Slots Collection Rules
+    match /slots/{slotId} {
+      allow get, list: if true;
+      allow create, update: if isValidId(slotId) 
+        && isValidSlot(incoming()) 
+        && incoming().id == slotId;
+      allow delete: if isValidId(slotId);
+    }
+  }
+}
