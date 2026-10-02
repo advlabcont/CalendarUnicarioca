@@ -60,7 +60,9 @@ service cloud.firestore {
         && (!('grade' in data) || (data.grade is string && data.grade.size() <= 100))
         && (!('status' in data) || (data.status is string && data.status.size() <= 50))
         && (!('feedback' in data) || (data.feedback is string && data.feedback.size() <= 2000))
-        && (!('rubricScores' in data) || (data.rubricScores is map));
+        && (!('rubricScores' in data) || (data.rubricScores is map))
+        && (!('cancelPassword' in data) || (data.cancelPassword is string && data.cancelPassword.size() <= 60))
+        && (!('protocol' in data) || (data.protocol is string && data.protocol.size() <= 80));
     }
 
     function isValidBookingUpdate(data) {
@@ -82,7 +84,9 @@ service cloud.firestore {
         && (!('grade' in data) || (data.grade is string && data.grade.size() <= 100))
         && (!('status' in data) || (data.status is string && data.status.size() <= 50))
         && (!('feedback' in data) || (data.feedback is string && data.feedback.size() <= 2000))
-        && (!('rubricScores' in data) || (data.rubricScores is map));
+        && (!('rubricScores' in data) || (data.rubricScores is map))
+        && (!('cancelPassword' in data) || (data.cancelPassword is string && data.cancelPassword.size() <= 60))
+        && (!('protocol' in data) || (data.protocol is string && data.protocol.size() <= 80));
     }
 
     // Slots Collection Schema Validation

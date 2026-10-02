@@ -10,7 +10,10 @@ import {
   Award,
   ExternalLink,
   Presentation,
-  FileCheck
+  FileCheck,
+  Key,
+  Trash2,
+  AlertTriangle
 } from "lucide-react";
 import { Booking, EventConfig } from "../firebase";
 import { jsPDF } from "jspdf";
@@ -19,16 +22,18 @@ interface StudentTicketModalProps {
   booking: Booking;
   eventConfig?: EventConfig;
   onClose: () => void;
+  onCancelBooking?: (booking: Booking) => void;
 }
 
-export default function StudentTicketModal({ booking, onClose }: StudentTicketModalProps) {
+export default function StudentTicketModal({ booking, onClose, onCancelBooking }: StudentTicketModalProps) {
   const [copied, setCopied] = useState(false);
+  const [copiedPwd, setCopiedPwd] = useState(false);
 
   const cleanId = booking.id.replace(/[^a-zA-Z0-9]/g, "");
-  const protocol = `UNI-${booking.turmaCode || "2026"}-${cleanId.slice(-4)}-${booking.createdAt.toString().slice(-4)}`;
+  const protocol = booking.protocol || `UNI-${booking.turmaCode || "2026"}-${cleanId.slice(-4)}-${booking.createdAt.toString().slice(-4)}`;
 
   const handleCopy = () => {
-    const text = `📋 COMPROVANTE OFICIAL • UniCarioca 2026/2\nProtocolo: ${protocol}\nTurma: ${booking.turmaCode || ""} - ${booking.turmaName || ""}\nData: ${booking.presentationDate || ""}\nHorário: ${booking.slot}\nProjeto: ${booking.projectTitle}\nIntegrantes:\n${booking.members}${booking.presentationLink ? `\nApresentação: ${booking.presentationLink}` : ""}`;
+    const text = `📋 COMPROVANTE OFICIAL • UniCarioca 2026/2\nProtocolo: ${protocol}\nTurma: ${booking.turmaCode || ""} - ${booking.turmaName || ""}\nData: ${booking.presentationDate || ""}\nHorário: ${booking.slot}\nProjeto: ${booking.projectTitle}\nIntegrantes:\n${booking.members}${booking.cancelPassword ? `\nSenha de Cancelamento: ${booking.cancelPassword}` : ""}${booking.presentationLink ? `\nApresentação: ${booking.presentationLink}` : ""}`;
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -101,7 +106,7 @@ export default function StudentTicketModal({ booking, onClose }: StudentTicketMo
 
       if (booking.membersList && booking.membersList.length > 0) {
         booking.membersList.forEach((m, idx) => {
-          if (yOffset < 125) {
+          if (yOffset < 114) {
             doc.text(`${idx + 1}. ${m.name} (Matr: ${m.matricula})`, 10, yOffset);
             yOffset += 4;
           }
@@ -110,6 +115,26 @@ export default function StudentTicketModal({ booking, onClose }: StudentTicketMo
         const splitMembers = doc.splitTextToSize(booking.members, 85);
         doc.text(splitMembers, 10, yOffset);
         yOffset += splitMembers.length * 4;
+      }
+
+      // Cancellation password in PDF
+      if (booking.cancelPassword) {
+        yOffset += 2;
+        doc.setFillColor(254, 242, 242);
+        doc.roundedRect(10, yOffset, 85, 12, 2, 2, "F");
+        doc.setDrawColor(208, 32, 26);
+        doc.roundedRect(10, yOffset, 85, 12, 2, 2, "D");
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(7);
+        doc.setTextColor(163, 20, 15);
+        doc.text("SENHA PARA CANCELAMENTO:", 13, yOffset + 4.5);
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10.5);
+        doc.setTextColor(208, 32, 26);
+        doc.text(booking.cancelPassword, 13, yOffset + 9.5);
+        yOffset += 15;
       }
 
       if (booking.presentationLink || booking.presentationFileName) {
@@ -160,7 +185,7 @@ export default function StudentTicketModal({ booking, onClose }: StudentTicketMo
               {booking.turmaCode || "UniCarioca"}
             </span>
             <span className="text-[11px] text-[#CBD4E8] font-medium">
-              Comprovante de Inscrição
+              Comprovante Oficial de Inscrição
             </span>
           </div>
 
@@ -173,7 +198,7 @@ export default function StudentTicketModal({ booking, onClose }: StudentTicketMo
         </div>
 
         {/* Ticket Details */}
-        <div className="p-6 space-y-5">
+        <div className="p-6 space-y-4">
           {/* Main Card */}
           <div className="bg-[#F3F5FA] border border-[#DFE4EE] rounded-xl p-4 space-y-3 relative">
             <div className="flex items-start justify-between gap-3">
@@ -261,8 +286,40 @@ export default function StudentTicketModal({ booking, onClose }: StudentTicketMo
             )}
           </div>
 
+          {/* Cancellation Password Highlight */}
+          {booking.cancelPassword && (
+            <div className="bg-[#FEF2F2] border border-[#D0201A]/30 rounded-xl p-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-[#FDECEA] text-[#D0201A] rounded-lg">
+                  <Key className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-[#66728C] font-semibold block uppercase">
+                    Senha de Cancelamento
+                  </span>
+                  <span className="font-mono font-black text-sm text-[#D0201A] tracking-wider">
+                    {booking.cancelPassword}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(booking.cancelPassword || "");
+                  setCopiedPwd(true);
+                  setTimeout(() => setCopiedPwd(false), 2000);
+                }}
+                className="text-xs font-bold text-[#D0201A] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                {copiedPwd ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedPwd ? "Copiada" : "Copiar"}
+              </button>
+            </div>
+          )}
+
           {/* Action Buttons */}
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             <button
               onClick={handleDownloadTicketPDF}
               className="w-full btn-pill-red text-xs py-3 shadow-md"
@@ -279,11 +336,25 @@ export default function StudentTicketModal({ booking, onClose }: StudentTicketMo
               {copied ? <Check className="w-4 h-4 text-[#D0201A]" /> : <Copy className="w-4 h-4 text-[#66728C]" />}
               {copied ? "Dados Copiados!" : "Copiar Dados da Inscrição"}
             </button>
+
+            {onCancelBooking && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onCancelBooking(booking);
+                }}
+                className="w-full py-2.5 px-3 rounded-xl border border-red-200 text-[#D0201A] hover:bg-[#FDECEA] text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Cancelar Este Agendamento</span>
+              </button>
+            )}
           </div>
 
           <div className="space-y-1 text-center">
             <p className="text-[11px] text-slate-400 leading-relaxed">
-              Guarde o número de protocolo ou o PDF para confirmar seu horário com a banca no dia da apresentação.
+              Guarde o número de protocolo e sua senha para gerenciar ou confirmar seu horário no dia da apresentação.
             </p>
             <p className="text-[10px] text-[#66728C] pt-1">
               Criado por <strong>Anderson Vieira</strong> •{" "}

@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Calendar, 
   Clock, 
   ChevronRight, 
+  ChevronLeft,
   MapPin, 
   Sparkles, 
   ShieldCheck,
@@ -31,13 +32,33 @@ export default function CoverPage({ onSelectTurma, onEnter, onTeacherLoginClick 
   const [shiftFilter, setShiftFilter] = useState<"all" | "night" | "morning">("all");
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
+  // Dynamic Rotating Calendar Featured Turma
+  const [currentFeaturedIndex, setCurrentFeaturedIndex] = useState(0);
+  const [isFeaturedPaused, setIsFeaturedPaused] = useState(false);
+
+  useEffect(() => {
+    if (isFeaturedPaused) return;
+    const interval = setInterval(() => {
+      setCurrentFeaturedIndex((prev) => (prev + 1) % OFFICIAL_TURMAS.length);
+    }, 4200);
+    return () => clearInterval(interval);
+  }, [isFeaturedPaused]);
+
+  const handlePrevFeatured = () => {
+    setCurrentFeaturedIndex((prev) => (prev - 1 + OFFICIAL_TURMAS.length) % OFFICIAL_TURMAS.length);
+  };
+
+  const handleNextFeatured = () => {
+    setCurrentFeaturedIndex((prev) => (prev + 1) % OFFICIAL_TURMAS.length);
+  };
+
+  const featuredTurma = OFFICIAL_TURMAS[currentFeaturedIndex];
+
   const filteredTurmas = OFFICIAL_TURMAS.filter((t) => {
     if (shiftFilter === "night") return t.timeRange.includes("19:00");
     if (shiftFilter === "morning") return t.timeRange.includes("09:00") || t.timeRange.includes("10:00");
     return true;
   });
-
-  const featuredTurma = OFFICIAL_TURMAS[0]; // Turma 1 - Primeira a apresentar em 08/12
 
   const faqs = [
     {
@@ -166,71 +187,173 @@ export default function CoverPage({ onSelectTurma, onEnter, onTeacherLoginClick 
               </div>
             </motion.div>
 
-            {/* Right Column: Netflix-style Featured Spotlight Card */}
+            {/* Right Column: Netflix-style Featured Spotlight Card with Dynamic Carousel */}
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className="lg:col-span-5"
             >
-              <div className="relative rounded-2xl p-6 bg-gradient-to-br from-[#13244A]/90 to-[#0A1733]/90 border border-white/15 backdrop-blur-md shadow-2xl overflow-hidden group">
-                {/* Accent glow on card hover */}
-                <div className="absolute -top-16 -right-16 w-44 h-44 bg-[#D0201A]/30 rounded-full blur-2xl group-hover:bg-[#D0201A]/50 transition-all duration-500" />
+              <div 
+                onMouseEnter={() => setIsFeaturedPaused(true)}
+                onMouseLeave={() => setIsFeaturedPaused(false)}
+                className="relative rounded-2xl p-6 bg-gradient-to-br from-[#13244A]/95 to-[#0A1733]/95 border border-white/20 backdrop-blur-md shadow-2xl overflow-hidden group transition-all"
+              >
+                {/* Ambient glow on hover */}
+                <div className="absolute -top-16 -right-16 w-48 h-48 bg-[#D0201A]/35 rounded-full blur-2xl group-hover:bg-[#D0201A]/50 transition-all duration-500 pointer-events-none" />
                 
+                {/* Top Animated Progress Bar for Auto-rotation */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-white/10 overflow-hidden">
+                  <motion.div
+                    key={currentFeaturedIndex}
+                    initial={{ width: "0%" }}
+                    animate={{ width: isFeaturedPaused ? "100%" : "100%" }}
+                    transition={{ 
+                      duration: isFeaturedPaused ? 0 : 4.2, 
+                      ease: "linear" 
+                    }}
+                    className={`h-full ${isFeaturedPaused ? "bg-amber-400" : "bg-[#D0201A]"}`}
+                  />
+                </div>
+
                 <div className="relative z-10 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#F4B740] uppercase tracking-wider bg-[#F4B740]/10 px-2.5 py-1 rounded-full border border-[#F4B740]/25">
-                      <Flame className="w-3.5 h-3.5" />
-                      Destaque do Calendário
-                    </span>
-                    <span className="text-xs font-mono font-bold text-white/70">
-                      {featuredTurma.code}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="text-[11px] text-[#CBD4E8] uppercase tracking-wider font-semibold">
-                      Primeira Rodada de Apresentações
-                    </span>
-                    <h3 className="text-lg font-bold text-white mt-1 leading-snug">
-                      {featuredTurma.name}
-                    </h3>
-                  </div>
-
-                  <div className="space-y-2 pt-3 border-t border-white/10 text-xs text-[#CBD4E8]">
-                    <div className="flex items-center justify-between">
-                      <span className="flex items-center gap-1.5">
-                        <Calendar className="w-4 h-4 text-[#D0201A]" />
-                        Data da Banca:
+                  {/* Top Header: Badge, Indicators & Navigation */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#F4B740] uppercase tracking-wider bg-[#F4B740]/15 px-2.5 py-1 rounded-full border border-[#F4B740]/30 shadow-xs">
+                        <Flame className="w-3.5 h-3.5 fill-current animate-pulse text-amber-400" />
+                        <span>Destaque do Calendário</span>
                       </span>
-                      <strong className="text-white font-medium">{featuredTurma.displayDate}</strong>
+                      {isFeaturedPaused && (
+                        <span className="text-[10px] text-amber-300 font-mono font-medium hidden sm:inline-block">
+                          (Pausado)
+                        </span>
+                      )}
                     </div>
 
-                    <div className="flex items-center justify-between">
-                      <span className="flex items-center gap-1.5">
-                        <Clock className="w-4 h-4 text-[#CBD4E8]" />
-                        Horário:
+                    {/* Navigation Controls */}
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={handlePrevFeatured}
+                        className="p-1 rounded-full bg-white/10 hover:bg-white/25 text-[#CBD4E8] hover:text-white transition cursor-pointer"
+                        title="Turma anterior"
+                        aria-label="Turma anterior"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <span className="text-xs font-mono font-bold text-white/80 px-1">
+                        {currentFeaturedIndex + 1}/{OFFICIAL_TURMAS.length}
                       </span>
-                      <span className="text-white">{featuredTurma.timeRange}</span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="flex items-center gap-1.5">
-                        <Users className="w-4 h-4 text-[#CBD4E8]" />
-                        Duração por banca:
-                      </span>
-                      <span className="text-white font-bold">{featuredTurma.intervalMinutes} minutos</span>
+                      <button
+                        type="button"
+                        onClick={handleNextFeatured}
+                        className="p-1 rounded-full bg-white/10 hover:bg-white/25 text-[#CBD4E8] hover:text-white transition cursor-pointer"
+                        title="Próxima turma"
+                        aria-label="Próxima turma"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
 
-                  <div className="pt-2">
-                    <button
-                      onClick={() => onSelectTurma(featuredTurma.id)}
-                      className="w-full btn-pill-red text-xs py-2.5 font-bold shadow-md hover:bg-[#A3140F] transition flex items-center justify-center gap-2 group/btn"
+                  {/* Turma Switcher Pills */}
+                  <div className="flex items-center gap-1.5 pt-1">
+                    {OFFICIAL_TURMAS.map((t, idx) => {
+                      const isActive = idx === currentFeaturedIndex;
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => setCurrentFeaturedIndex(idx)}
+                          className={`flex-1 py-1 rounded-lg text-[10px] font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
+                            isActive
+                              ? "bg-[#D0201A] text-white shadow-xs font-extrabold ring-1 ring-white/30"
+                              : "bg-white/10 text-[#CBD4E8] hover:bg-white/20 hover:text-white"
+                          }`}
+                          title={`${t.code} - ${t.presentationDate}`}
+                        >
+                          <span>T0{idx + 1}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Dynamic Animated Content */}
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={featuredTurma.id}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -12 }}
+                      transition={{ duration: 0.3 }}
+                      className="space-y-3"
                     >
-                      <span>Inscrever Esta Turma</span>
-                      <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                    </button>
+                      <div>
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className="text-[10px] text-red-300 font-bold tracking-wider uppercase">
+                            Banca 0{currentFeaturedIndex + 1} • {featuredTurma.shortName}
+                          </span>
+                          <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-white/10 text-white border border-white/10">
+                            {featuredTurma.code}
+                          </span>
+                        </div>
+                        <h3 className="text-base sm:text-lg font-bold text-white leading-snug line-clamp-2">
+                          {featuredTurma.name}
+                        </h3>
+                      </div>
+
+                      <div className="space-y-2 pt-2.5 border-t border-white/10 text-xs text-[#CBD4E8]">
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-1.5">
+                            <Calendar className="w-4 h-4 text-[#D0201A]" />
+                            Data da Banca:
+                          </span>
+                          <strong className="text-white font-medium">{featuredTurma.displayDate}</strong>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="w-4 h-4 text-[#CBD4E8]" />
+                            Horário:
+                          </span>
+                          <span className="text-white font-medium">{featuredTurma.timeRange}</span>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-1.5">
+                            <MapPin className="w-4 h-4 text-[#CBD4E8]" />
+                            Local do Evento:
+                          </span>
+                          <span className="text-white">{featuredTurma.location}</span>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-1.5">
+                            <Users className="w-4 h-4 text-[#CBD4E8]" />
+                            Tempo por grupo:
+                          </span>
+                          <span className="text-white font-bold">{featuredTurma.intervalMinutes} minutos</span>
+                        </div>
+                      </div>
+
+                      <div className="pt-2">
+                        <button
+                          type="button"
+                          onClick={() => onSelectTurma(featuredTurma.id)}
+                          className="w-full btn-pill-red text-xs py-2.5 font-bold shadow-md hover:bg-[#A3140F] transition flex items-center justify-center gap-2 group/btn cursor-pointer"
+                        >
+                          <span>Inscrever Esta Turma ({featuredTurma.code})</span>
+                          <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                        </button>
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
+
+                  <div className="text-center pt-0.5">
+                    <span className="text-[10px] text-white/50">
+                      Rotação automática • Passe o mouse para fixar
+                    </span>
                   </div>
                 </div>
               </div>

@@ -324,7 +324,7 @@ export default function TeacherDashboard({
         grade: editGrade.trim(),
         feedback: editFeedback.trim(),
         status: editStatus,
-        presentationLink: editPresentationLink.trim() || undefined
+        presentationLink: editPresentationLink.trim()
       });
       setEditingBooking(null);
       await onRefresh();
@@ -388,7 +388,8 @@ export default function TeacherDashboard({
           "Status da Banca": (b.status || "agendado").toUpperCase(),
           "Nota Final": b.grade || "-",
           "Observações / Parecer": b.feedback || "-",
-          "Protocolo": b.id,
+          "Senha / PIN Cancelamento": b.cancelPassword || "-",
+          "Protocolo": b.protocol || b.id,
           "Data de Inscrição": new Date(b.createdAt).toLocaleString("pt-BR")
         };
       });
@@ -407,6 +408,7 @@ export default function TeacherDashboard({
         { wch: 16 },
         { wch: 12 },
         { wch: 40 },
+        { wch: 22 },
         { wch: 25 },
         { wch: 20 }
       ];
@@ -978,6 +980,14 @@ export default function TeacherDashboard({
                               <p className="text-[10px] text-indigo-700 italic mt-0.5 line-clamp-1">
                                 Parecer: "{b.feedback}"
                               </p>
+                            )}
+
+                            {b.cancelPassword && (
+                              <div className="flex items-center gap-1.5 mt-1">
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 text-[9.5px] font-mono font-bold border border-amber-200" title="Senha de cancelamento informada pelo aluno">
+                                  <span>PIN Aluno: {b.cancelPassword}</span>
+                                </span>
+                              </div>
                             )}
                           </td>
 

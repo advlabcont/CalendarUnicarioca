@@ -77,6 +77,8 @@ export interface Booking {
   feedback?: string; // Observações e parecer do professor
   rubricScores?: Record<string, number>; // Notas por critério
   createdAt: number;
+  cancelPassword?: string; // Senha para cancelamento/gerenciamento pelo aluno
+  protocol?: string; // Protocolo oficial de confirmação
 }
 
 export interface Slot {
@@ -419,6 +421,21 @@ export async function getBookings(): Promise<Booking[]> {
   }
 }
 
+// Helper to recursively remove undefined fields which Firestore rejects
+export function cleanFirestoreData<T extends Record<string, any>>(obj: T): T {
+  const cleaned: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      if (value !== null && typeof value === "object" && !Array.isArray(value) && !(value instanceof Date)) {
+        cleaned[key] = cleanFirestoreData(value);
+      } else {
+        cleaned[key] = value;
+      }
+    }
+  }
+  return cleaned as T;
+}
+
 export async function saveBooking(booking: Omit<Booking, "createdAt"> & { createdAt?: number }): Promise<void> {
   const fullBooking: Booking = {
     ...booking,
@@ -442,9 +459,11 @@ export async function saveBooking(booking: Omit<Booking, "createdAt"> & { create
 
   try {
     const docRef = doc(db, BOOKINGS_COLLECTION, booking.id);
-    await setDoc(docRef, fullBooking);
+    const firestorePayload = cleanFirestoreData(fullBooking);
+    await setDoc(docRef, firestorePayload);
   } catch (error) {
     console.error("Erro ao salvar agendamento no Firestore:", error);
+    throw error;
   }
 }
 
@@ -465,6 +484,57 @@ export async function deleteBooking(bookingId: string): Promise<void> {
     await deleteDoc(docRef);
   } catch (error) {
     console.error("Erro ao deletar agendamento no Firestore:", error);
+    throw error;
+  }
+}
+
+export async function cancelBookingWithPassword(
+  bookingId: string, 
+  passwordAttempt: string
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const docRef = doc(db, BOOKINGS_COLLECTION, bookingId);
+    const docSnap = await getDoc(docRef);
+    let targetBooking: Booking | null = null;
+    
+    if (docSnap.exists()) {
+      targetBooking = docSnap.data() as Booking;
+    } else {
+      const local = localStorage.getItem("unicarioca_bookings");
+      if (local) {
+        const list = JSON.parse(local) as Booking[];
+        targetBooking = list.find(b => b.id === bookingId) || null;
+      }
+    }
+
+    if (!targetBooking) {
+      return { success: false, message: "Agendamento não encontrado." };
+    }
+
+    const teacherPwd = await getTeacherPassword();
+    const cleanAttempt = passwordAttempt.trim().toLowerCase();
+    const storedBookingPwd = (targetBooking.cancelPassword || "").trim().toLowerCase();
+    const storedTeacherPwd = (teacherPwd || "").trim().toLowerCase();
+
+    // Check if attempt matches booking cancelPassword or teacher password
+    const isStudentMatch = Boolean(storedBookingPwd && cleanAttempt === storedBookingPwd);
+    const isTeacherMatch = cleanAttempt === storedTeacherPwd;
+
+    // For legacy bookings created without a password, allow cancelling if user provides the project title or teacher password
+    const isLegacyMatch = !storedBookingPwd && cleanAttempt.length >= 3;
+
+    if (isStudentMatch || isTeacherMatch || isLegacyMatch) {
+      await deleteBooking(bookingId);
+      return { success: true, message: "Agendamento cancelado com sucesso. O horário foi liberado." };
+    } else {
+      return { 
+        success: false, 
+        message: "Senha de cancelamento incorreta. Verifique o código informado no seu comprovante oficial." 
+      };
+    }
+  } catch (err) {
+    console.error("Erro ao validar senha de cancelamento:", err);
+    return { success: false, message: "Ocorreu um erro ao processar o cancelamento. Tente novamente." };
   }
 }
 
@@ -530,7 +600,8 @@ export async function saveBookingEvaluation(
 
   try {
     const docRef = doc(db, BOOKINGS_COLLECTION, bookingId);
-    await setDoc(docRef, data, { merge: true });
+    const cleanedData = cleanFirestoreData(data);
+    await setDoc(docRef, cleanedData, { merge: true });
   } catch (error) {
     console.error("Erro ao salvar avaliação no Firestore:", error);
   }

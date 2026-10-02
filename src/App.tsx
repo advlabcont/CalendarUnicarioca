@@ -13,13 +13,16 @@ import {
   FileCheck,
   ChevronRight,
   MapPin,
-  FileText
+  FileText,
+  Trash2,
+  Key
 } from "lucide-react";
 import CoverPage from "./components/CoverPage";
 import TeacherDashboard from "./components/TeacherDashboard";
 import BookingModal from "./components/BookingModal";
 import TeacherLoginModal from "./components/TeacherLoginModal";
 import StudentTicketModal from "./components/StudentTicketModal";
+import CancelBookingModal from "./components/CancelBookingModal";
 import UniCariocaLogo from "./components/UniCariocaLogo";
 import { motion, AnimatePresence } from "motion/react";
 import { 
@@ -52,6 +55,7 @@ export default function App() {
   // Modals state
   const [selectedSlot, setSelectedSlot] = useState<{ id: string; time: string } | null>(null);
   const [selectedTicketBooking, setSelectedTicketBooking] = useState<Booking | null>(null);
+  const [cancelModalBooking, setCancelModalBooking] = useState<Booking | null>(null);
   const [isTeacherLoginOpen, setIsTeacherLoginOpen] = useState(false);
 
   // Student Timeline Search & Filter
@@ -214,6 +218,8 @@ export default function App() {
     turmaCode?: string;
     turmaName?: string;
     presentationDate?: string;
+    cancelPassword?: string;
+    protocol?: string;
   }) => {
     if (!selectedSlot) return;
 
@@ -617,13 +623,24 @@ export default function App() {
                                 </div>
                               )}
 
-                              <div className="pt-2">
+                              <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <button
+                                  type="button"
                                   onClick={() => setSelectedTicketBooking(booking)}
-                                  className="w-full btn-pill-outline text-xs py-2"
+                                  className="btn-pill-outline text-xs py-2 flex items-center justify-center gap-1.5 cursor-pointer"
                                 >
-                                  <FileText className="w-3.5 h-3.5" />
-                                  Visualizar Comprovante Oficial
+                                  <FileText className="w-3.5 h-3.5 text-[#D0201A]" />
+                                  <span>Ver Comprovante</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => setCancelModalBooking(booking)}
+                                  className="py-2 px-3 rounded-full border border-red-200 text-[#D0201A] hover:bg-[#FDECEA] text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                                  title="Cancelar inscrição utilizando a senha da equipe"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <span>Cancelar Vaga</span>
                                 </button>
                               </div>
                             </div>
@@ -698,7 +715,7 @@ export default function App() {
               onClose={() => setSelectedSlot(null)}
               onConfirm={async (details) => {
                 await handleConfirmBooking(details);
-                setSelectedSlot(null);
+                // Keeps BookingModal open to present the confirmation screen, cancellation password, and immediate PDF download
               }}
             />
           )}
@@ -708,6 +725,20 @@ export default function App() {
               booking={selectedTicketBooking}
               eventConfig={eventConfig}
               onClose={() => setSelectedTicketBooking(null)}
+              onCancelBooking={(b) => {
+                setSelectedTicketBooking(null);
+                setCancelModalBooking(b);
+              }}
+            />
+          )}
+
+          {cancelModalBooking && (
+            <CancelBookingModal
+              booking={cancelModalBooking}
+              onClose={() => setCancelModalBooking(null)}
+              onCancelled={() => {
+                setCancelModalBooking(null);
+              }}
             />
           )}
 
