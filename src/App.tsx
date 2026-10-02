@@ -261,7 +261,11 @@ export default function App() {
           bookings={bookings} 
           allSlots={slots} 
           eventConfig={eventConfig}
-          onLogout={() => setView("cover")} 
+          onLogout={() => {
+            sessionStorage.removeItem("unicarioca_teacher_auth");
+            localStorage.removeItem("unicarioca_teacher_auth");
+            setView("cover");
+          }} 
           onRefresh={fetchAllData} 
           onEventConfigUpdated={(cfg) => setEventConfig(cfg)}
         />

@@ -29,11 +29,11 @@ export default function TeacherLoginModal({ isOpen, onClose, onSuccess }: Teache
 
       if (trimmed === stored || (stored === "senha" && trimmed === "senha")) {
         if (rememberSession) {
-          sessionStorage.setItem("unicarioca_teacher_auth", "true");
+          localStorage.setItem("unicarioca_teacher_auth", "true");
         }
         onSuccess();
       } else {
-        setError("Senha incorreta. A senha padrão inicial do sistema é 'senha'.");
+        setError("Senha incorreta. Verifique a credencial de acesso do docente.");
       }
     } catch (err) {
       console.error(err);
@@ -111,9 +111,6 @@ export default function TeacherLoginModal({ isOpen, onClose, onSuccess }: Teache
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
-            <p className="text-[11px] text-[#66728C] mt-1">
-              Dica: a senha inicial padrão configurada é <code className="bg-[#F3F5FA] px-1 py-0.5 rounded font-mono text-[#0A1733] font-bold">senha</code>.
-            </p>
           </div>
 
           <div className="flex items-center gap-2 pt-1">
